@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { type RowData, createEmptyRow, calcGrandTotal, calcColumnTotal, DENOMINATIONS } from "@/config/denominations"
+import { type RowData, createEmptyRow, calcGrandTotal, calcColumnTotal, calcRowTotal, DENOMINATIONS } from "@/config/denominations"
 import { HongbaoTable } from "@/components/HongbaoTable"
 
 function App() {
@@ -9,8 +9,58 @@ function App() {
     createEmptyRow(),
   ])
   const [confirmClearAll, setConfirmClearAll] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   const grandTotal = calcGrandTotal(rows)
+
+  const handleCopy = async () => {
+    const now = new Date()
+    const date = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`
+
+    const lines: string[] = []
+    lines.push("🧧 紅包點鈔表")
+    lines.push(`日期：${date}`)
+    lines.push("")
+
+    // Each person
+    const filledRows = rows.filter((r) => r.name.trim() || DENOMINATIONS.some((d) => (r.counts[d.value] || 0) > 0))
+    for (const row of filledRows) {
+      const name = row.name.trim() || "（未命名）"
+      const total = calcRowTotal(row)
+      const denomParts = DENOMINATIONS.map((d) => `${d.value}元×${row.counts[d.value] || 0}`).join("  ")
+      lines.push(`${name}　${denomParts}　小計 $${total.toLocaleString()}`)
+    }
+
+    lines.push("")
+    lines.push("────────────")
+
+    // Totals
+    const denomTotals = DENOMINATIONS.map((d) => `${d.value}元：${calcColumnTotal(rows, d.value)}張`).join("  ")
+    lines.push(`合計　${denomTotals}`)
+    lines.push(`總金額　$${grandTotal.toLocaleString()}`)
+    lines.push("")
+    lines.push("🧧 紅包到位　福氣歸位 ✨")
+
+    const text = lines.join("\n")
+
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // Fallback for older browsers / mobile
+      const ta = document.createElement("textarea")
+      ta.value = text
+      ta.style.position = "fixed"
+      ta.style.opacity = "0"
+      document.body.appendChild(ta)
+      ta.select()
+      document.execCommand("copy")
+      document.body.removeChild(ta)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
+  }
 
   const handleClearAll = () => {
     setRows([createEmptyRow(), createEmptyRow()])
@@ -180,6 +230,22 @@ function App() {
 
           <div className="h-[2px] bg-gradient-to-r from-transparent via-gold-400 to-transparent" />
         </div>
+
+        {/* Copy button */}
+        {grandTotal > 0 && (
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={handleCopy}
+            className="w-full mt-4 py-3 bg-gradient-to-r from-red-700 to-red-800 text-gold-200 rounded-xl font-semibold text-sm shadow-lg hover:from-red-600 hover:to-red-700 transition-all flex items-center justify-center gap-2"
+          >
+            {copied ? (
+              <>✅ 已複製到剪貼簿</>
+            ) : (
+              <>📋 複製統計結果</>
+            )}
+          </motion.button>
+        )}
 
         {/* Footer */}
         <footer className="text-center mt-8 text-xs text-[#b8a080]">
