@@ -8,8 +8,6 @@ function App() {
     createEmptyRow(),
     createEmptyRow(),
   ])
-  const [activeRowId, setActiveRowId] = useState<string | null>(null)
-  const [toast, setToast] = useState<string | null>(null)
   const [showBlessing, setShowBlessing] = useState(false)
   const [confirmClearAll, setConfirmClearAll] = useState(false)
   const prevTotalRef = useRef(0)
@@ -26,59 +24,14 @@ function App() {
     prevTotalRef.current = grandTotal
   }, [grandTotal])
 
-  // Toast auto-dismiss
-  useEffect(() => {
-    if (toast) {
-      const t = setTimeout(() => setToast(null), 2500)
-      return () => clearTimeout(t)
-    }
-  }, [toast])
-
-  // Bill click handler: +1 to active row's denomination
-  const handleBillClick = (denomValue: number) => {
-    if (!activeRowId) {
-      setToast("請先選擇一位收紅包的人 👆")
-      return
-    }
-    // Check the active row still exists
-    const exists = rows.some((r) => r.id === activeRowId)
-    if (!exists) {
-      setActiveRowId(null)
-      setToast("請先選擇一位收紅包的人 👆")
-      return
-    }
-    setRows((prev) =>
-      prev.map((r) =>
-        r.id === activeRowId
-          ? { ...r, counts: { ...r.counts, [denomValue]: (r.counts[denomValue] || 0) + 1 } }
-          : r
-      )
-    )
-  }
-
   // Clear all
   const handleClearAll = () => {
     setRows([createEmptyRow(), createEmptyRow()])
-    setActiveRowId(null)
     setConfirmClearAll(false)
   }
 
   return (
     <div className="min-h-screen pb-12">
-      {/* Toast */}
-      <AnimatePresence>
-        {toast && (
-          <motion.div
-            initial={{ opacity: 0, y: -30 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -30 }}
-            className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-[#3d2e1f] text-gold-200 px-5 py-2.5 rounded-full shadow-lg text-sm font-medium"
-          >
-            {toast}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* Header */}
       <header className="relative overflow-hidden">
         <div className="bg-gradient-to-b from-red-700 via-red-700 to-red-800 pt-8 pb-14 px-4 text-center relative">
@@ -141,17 +94,10 @@ function App() {
           </div>
 
           {/* Table */}
-          <HongbaoTable
-            rows={rows}
-            setRows={setRows}
-            activeRowId={activeRowId}
-            setActiveRowId={setActiveRowId}
-            onBillClick={handleBillClick}
-          />
+          <HongbaoTable rows={rows} setRows={setRows} />
 
           {/* Action buttons row */}
           <div className="flex gap-3 mt-4">
-            {/* Clear all button */}
             {rows.length > 0 && (
               <div className="relative">
                 {confirmClearAll ? (
@@ -183,84 +129,82 @@ function App() {
           </div>
         </motion.div>
 
-        {/* Grand Total — Ceremonial Display */}
-        {grandTotal > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="mt-6 relative"
-          >
-            <div className="h-[2px] bg-gradient-to-r from-transparent via-gold-400 to-transparent" />
+        {/* Bottom Grand Total — Ceremonial */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="mt-6 relative"
+        >
+          <div className="h-[2px] bg-gradient-to-r from-transparent via-gold-400 to-transparent" />
 
-            <div className="bg-gradient-to-b from-red-800 via-red-700 to-red-800 rounded-2xl p-6 sm:p-8 text-center relative overflow-hidden shadow-2xl shadow-red-900/30 border border-gold-400/20">
-              <div className="absolute inset-2 border border-gold-400/20 rounded-xl pointer-events-none" />
-              <div
-                className="absolute inset-0 opacity-[0.03]"
-                style={{
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 0L40 20 20 40 0 20z' fill='%23FFD700' fill-opacity='1'/%3E%3C/svg%3E")`,
-                  backgroundSize: "20px 20px",
-                }}
-              />
-              <div className="relative z-10">
-                <p className="text-gold-300/70 text-sm tracking-[0.3em] font-display mb-3">🧧 合計 🧧</p>
+          <div className="bg-gradient-to-b from-red-800 via-red-700 to-red-800 rounded-2xl p-6 sm:p-8 text-center relative overflow-hidden shadow-2xl shadow-red-900/30 border border-gold-400/20">
+            <div className="absolute inset-2 border border-gold-400/20 rounded-xl pointer-events-none" />
+            <div
+              className="absolute inset-0 opacity-[0.03]"
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 0L40 20 20 40 0 20z' fill='%23FFD700' fill-opacity='1'/%3E%3C/svg%3E")`,
+                backgroundSize: "20px 20px",
+              }}
+            />
+            <div className="relative z-10">
+              <p className="text-gold-300/70 text-sm tracking-[0.3em] font-display mb-3">🧧 合計 🧧</p>
 
-                <motion.div
-                  key={grandTotal}
-                  initial={{ scale: 1.08 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              <motion.div
+                key={grandTotal}
+                initial={{ scale: 1.08 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              >
+                <span
+                  className="font-mono text-4xl sm:text-5xl font-black tracking-tight"
+                  style={{
+                    background: "linear-gradient(180deg, #ffd700 0%, #f5c118 40%, #daa520 70%, #b8860b 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    filter: "drop-shadow(0 0 20px rgba(255, 215, 0, 0.3))",
+                  }}
                 >
-                  <span
-                    className="font-mono text-4xl sm:text-5xl font-black tracking-tight"
-                    style={{
-                      background: "linear-gradient(180deg, #ffd700 0%, #f5c118 40%, #daa520 70%, #b8860b 100%)",
-                      WebkitBackgroundClip: "text",
-                      WebkitTextFillColor: "transparent",
-                      filter: "drop-shadow(0 0 20px rgba(255, 215, 0, 0.3))",
-                    }}
-                  >
-                    $ {grandTotal.toLocaleString()}
-                  </span>
-                </motion.div>
+                  $ {grandTotal.toLocaleString()}
+                </span>
+              </motion.div>
 
-                {/* Denomination breakdown — badge style */}
-                <div className="flex flex-wrap justify-center gap-3 sm:gap-5 mt-5">
-                  {DENOMINATIONS.map((d) => {
-                    const count = calcColumnTotal(rows, d.value)
-                    return (
-                      <div
-                        key={d.value}
-                        className="bg-white/10 backdrop-blur-sm rounded-lg px-3 py-1.5 border border-gold-400/15"
-                      >
-                        <span className="text-gold-200/60 text-xs">{d.value}元：</span>
-                        <span className="text-gold-300 font-bold text-sm ml-0.5">{count}</span>
-                        <span className="text-gold-200/60 text-xs ml-0.5">張</span>
-                      </div>
-                    )
-                  })}
-                </div>
-
-                {/* Blessing — single line, only when grandTotal > 0 */}
-                <AnimatePresence>
-                  {showBlessing && grandTotal > 0 && (
-                    <motion.p
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.8 }}
-                      className="mt-5 text-gold-300/90 text-sm tracking-[0.2em] font-display whitespace-nowrap"
+              {/* Denomination breakdown — badge style */}
+              <div className="flex flex-wrap justify-center gap-3 sm:gap-5 mt-5">
+                {DENOMINATIONS.map((d) => {
+                  const count = calcColumnTotal(rows, d.value)
+                  return (
+                    <div
+                      key={d.value}
+                      className="bg-white/10 backdrop-blur-sm rounded-lg px-3 py-1.5 border border-gold-400/15"
                     >
-                      🧧 紅包到位　福氣歸位 ✨
-                    </motion.p>
-                  )}
-                </AnimatePresence>
+                      <span className="text-gold-200/60 text-xs">{d.value}元：</span>
+                      <span className="text-gold-300 font-bold text-sm ml-0.5">{count}</span>
+                      <span className="text-gold-200/60 text-xs ml-0.5">張</span>
+                    </div>
+                  )
+                })}
               </div>
-            </div>
 
-            <div className="h-[2px] bg-gradient-to-r from-transparent via-gold-400 to-transparent" />
-          </motion.div>
-        )}
+              {/* Blessing — only when grandTotal > 0 */}
+              <AnimatePresence>
+                {showBlessing && grandTotal > 0 && (
+                  <motion.p
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.8 }}
+                    className="mt-5 text-gold-300/90 text-sm tracking-[0.2em] font-display whitespace-nowrap"
+                  >
+                    🧧 紅包到位　福氣歸位 ✨
+                  </motion.p>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+
+          <div className="h-[2px] bg-gradient-to-r from-transparent via-gold-400 to-transparent" />
+        </motion.div>
 
         {/* Footer */}
         <footer className="text-center mt-8 text-xs text-[#b8a080]">
