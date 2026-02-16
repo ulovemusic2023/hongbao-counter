@@ -1,6 +1,6 @@
-import { useState } from "react"
-import { motion } from "framer-motion"
-import { type RowData, createEmptyRow } from "@/config/denominations"
+import { useState, useRef, useEffect } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import { type RowData, createEmptyRow, calcGrandTotal, calcColumnTotal, DENOMINATIONS } from "@/config/denominations"
 import { HongbaoTable } from "@/components/HongbaoTable"
 import { ExportButtons } from "@/components/ExportButtons"
 
@@ -9,6 +9,21 @@ function App() {
     createEmptyRow(),
     createEmptyRow(),
   ])
+  const [showBlessing, setShowBlessing] = useState(false)
+  const prevTotalRef = useRef(0)
+
+  const grandTotal = calcGrandTotal(rows)
+
+  // Blessing animation trigger: when total goes from 0 to > 0
+  useEffect(() => {
+    if (prevTotalRef.current === 0 && grandTotal > 0) {
+      setShowBlessing(true)
+      // Haptic feedback on mobile
+      if (navigator.vibrate) navigator.vibrate(80)
+      setTimeout(() => setShowBlessing(false), 3500)
+    }
+    prevTotalRef.current = grandTotal
+  }, [grandTotal])
 
   return (
     <div className="min-h-screen pb-12">
@@ -93,6 +108,87 @@ function App() {
           {/* Table */}
           <HongbaoTable rows={rows} setRows={setRows} />
         </motion.div>
+
+        {/* Grand Total — Ceremonial Display */}
+        {grandTotal > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="mt-6 relative"
+          >
+            {/* Top gold line */}
+            <div className="h-[2px] bg-gradient-to-r from-transparent via-gold-400 to-transparent mb-0" />
+            
+            <div className="bg-gradient-to-b from-red-800 via-red-700 to-red-800 rounded-2xl p-6 sm:p-8 text-center relative overflow-hidden shadow-2xl shadow-red-900/30 border border-gold-400/20">
+              {/* Inner gold frame */}
+              <div className="absolute inset-2 border border-gold-400/20 rounded-xl pointer-events-none" />
+              
+              {/* Subtle pattern */}
+              <div
+                className="absolute inset-0 opacity-[0.03]"
+                style={{
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 0L40 20 20 40 0 20z' fill='%23FFD700' fill-opacity='1'/%3E%3C/svg%3E")`,
+                  backgroundSize: "20px 20px",
+                }}
+              />
+
+              <div className="relative z-10">
+                <p className="text-gold-300/70 text-sm tracking-[0.3em] font-display mb-3">🧧 合計 🧧</p>
+                
+                {/* Grand total with king-size font + gold glow */}
+                <motion.div
+                  key={grandTotal}
+                  initial={{ scale: 1.08 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                >
+                  <span 
+                    className="font-mono text-4xl sm:text-5xl font-black tracking-tight"
+                    style={{
+                      background: "linear-gradient(180deg, #ffd700 0%, #f5c118 40%, #daa520 70%, #b8860b 100%)",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                      filter: "drop-shadow(0 0 20px rgba(255, 215, 0, 0.3))",
+                    }}
+                  >
+                    $ {grandTotal.toLocaleString()}
+                  </span>
+                </motion.div>
+
+                {/* Denomination breakdown */}
+                <div className="flex justify-center gap-4 sm:gap-8 mt-4 text-gold-200/60 text-xs sm:text-sm">
+                  {DENOMINATIONS.map((d) => {
+                    const count = calcColumnTotal(rows, d.value)
+                    return (
+                      <span key={d.value}>
+                        {d.value}元 × <span className="text-gold-300 font-bold">{count}</span>張
+                      </span>
+                    )
+                  })}
+                </div>
+
+                {/* Blessing text with fade-in animation */}
+                <AnimatePresence>
+                  {showBlessing && (
+                    <motion.p
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.8 }}
+                      className="mt-5 text-gold-300/90 text-sm tracking-[0.2em] font-display"
+                    >
+                      🧧 紅包到位　福氣歸位 ✨
+                    </motion.p>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+
+            {/* Bottom gold line */}
+            <div className="h-[2px] bg-gradient-to-r from-transparent via-gold-400 to-transparent mt-0" />
+          </motion.div>
+        )}
 
         {/* Footer */}
         <footer className="text-center mt-8 text-xs text-[#b8a080]">
