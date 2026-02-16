@@ -5,7 +5,6 @@ import {
   DENOMINATIONS,
   type RowData,
   createEmptyRow,
-  calcRowTotal,
 } from "@/config/denominations"
 import { BillImage } from "./BillImage"
 
@@ -81,16 +80,12 @@ export function HongbaoTable({ rows, setRows }: HongbaoTableProps) {
                   </span>
                 </th>
               ))}
-              <th className="py-3 px-3 text-center font-display text-sm font-semibold text-[#5a3e2b] min-w-[100px]">
-                小計
-              </th>
               <th className="py-3 px-2 w-10" />
             </tr>
           </thead>
           <tbody>
             <AnimatePresence mode="popLayout">
               {rows.map((row, idx) => {
-                const rowTotal = calcRowTotal(row)
                 return (
                   <motion.tr
                     key={row.id}
@@ -138,15 +133,6 @@ export function HongbaoTable({ rows, setRows }: HongbaoTableProps) {
                         </div>
                       </td>
                     ))}
-                    <td className="py-2 px-3 text-center">
-                      <span
-                        className={`font-mono text-lg font-black transition-colors ${
-                          rowTotal > 0 ? "text-red-700 drop-shadow-[0_0_6px_rgba(200,50,50,0.15)]" : "text-[#bbb]"
-                        }`}
-                      >
-                        ${rowTotal.toLocaleString()}
-                      </span>
-                    </td>
                     <td className="py-2 px-2 text-center">
                       {confirmDeleteId === row.id ? (
                         <div className="flex items-center gap-1">
@@ -185,7 +171,6 @@ export function HongbaoTable({ rows, setRows }: HongbaoTableProps) {
       <div className="sm:hidden space-y-3">
         <AnimatePresence mode="popLayout">
           {rows.map((row, idx) => {
-            const rowTotal = calcRowTotal(row)
             return (
               <motion.div
                 key={row.id}
@@ -261,17 +246,6 @@ export function HongbaoTable({ rows, setRows }: HongbaoTableProps) {
                   ))}
                 </div>
 
-                {/* Row subtotal */}
-                <div className="mt-3 pt-2 border-t border-gold-200/30 text-right">
-                  <span className="text-xs text-[#8a7460]">小計：</span>
-                  <span
-                    className={`font-mono text-lg font-black ml-1 ${
-                      rowTotal > 0 ? "text-red-700" : "text-[#bbb]"
-                    }`}
-                  >
-                    ${rowTotal.toLocaleString()}
-                  </span>
-                </div>
               </motion.div>
             )
           })}
