@@ -75,10 +75,8 @@ export function HongbaoTable({ rows, setRows }: HongbaoTableProps) {
                 稱謂/姓名
               </th>
               {DENOMINATIONS.map((d) => (
-                <th key={d.value} className="py-3 px-2 text-center min-w-[140px]">
-                  <span className="text-xs font-semibold text-[#5a3e2b]/70">
-                    {d.label}
-                  </span>
+                <th key={d.value} className="py-3 px-2 text-center min-w-[130px]">
+                  <BillImage denomination={d} height={36} />
                 </th>
               ))}
               <th className="py-3 px-3 text-center font-display text-sm font-semibold text-[#5a3e2b] min-w-[90px]">
@@ -101,13 +99,16 @@ export function HongbaoTable({ rows, setRows }: HongbaoTableProps) {
                     className="border-b border-gold-400/10 hover:bg-gold-50/40 transition-colors group"
                   >
                     <td className="py-2 px-3">
-                      <input
-                        type="text"
-                        value={row.name}
-                        onChange={(e) => updateName(row.id, e.target.value)}
-                        placeholder="輸入姓名..."
-                        className="w-full bg-transparent border-b border-gold-300/40 focus:border-gold-500 outline-none py-1.5 px-1 text-sm text-[#3d2e1f] placeholder:text-[#b8a080] transition-colors font-medium"
-                      />
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-gold-500/70 shrink-0 w-5 text-right">{idx + 1}.</span>
+                        <input
+                          type="text"
+                          value={row.name}
+                          onChange={(e) => updateName(row.id, e.target.value)}
+                          placeholder="輸入姓名..."
+                          className="w-full bg-transparent border-b border-gold-300/40 focus:border-gold-500 outline-none py-1.5 px-1 text-sm text-[#3d2e1f] placeholder:text-[#b8a080] transition-colors font-medium"
+                        />
+                      </div>
                     </td>
                     {DENOMINATIONS.map((d) => (
                       <td key={d.value} className="py-2 px-2 text-center">
@@ -193,29 +194,30 @@ export function HongbaoTable({ rows, setRows }: HongbaoTableProps) {
                 transition={{ duration: 0.25, delay: idx * 0.03 }}
                 className="bg-white/70 backdrop-blur-sm rounded-xl border border-gold-300/20 p-3 shadow-sm overflow-hidden"
               >
-                {/* Row 1: Name */}
-                <div className="mb-3">
+                {/* Row 1: Number + Name */}
+                <div className="mb-3 flex items-center gap-2">
+                  <span className="text-sm font-bold text-gold-500/70 shrink-0">{idx + 1}.</span>
                   <input
                     type="text"
                     value={row.name}
                     onChange={(e) => updateName(row.id, e.target.value)}
                     placeholder="輸入姓名..."
-                    className="w-full bg-transparent border-b border-gold-300/40 focus:border-gold-500 outline-none py-1 text-base text-[#3d2e1f] placeholder:text-[#b8a080] font-semibold"
+                    className="flex-1 bg-transparent border-b border-gold-300/40 focus:border-gold-500 outline-none py-1 text-base text-[#3d2e1f] placeholder:text-[#b8a080] font-semibold"
                   />
                 </div>
 
                 {/* Row 2: Bill buttons + inputs */}
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-3">
                   {DENOMINATIONS.map((d) => (
-                    <div key={d.value} className="flex flex-col items-center gap-1">
+                    <div key={d.value} className="flex flex-col items-center gap-1.5">
                       <button
                         type="button"
                         onClick={() => incrementCount(row.id, d.value)}
                         className="relative cursor-pointer transition-transform active:scale-90"
                         title={`+1 張 ${d.label}`}
                       >
-                        <BillImage denomination={d} height={28} />
-                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center shadow-sm">
+                        <BillImage denomination={d} height={40} />
+                        <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm">
                           +1
                         </div>
                       </button>
@@ -227,9 +229,8 @@ export function HongbaoTable({ rows, setRows }: HongbaoTableProps) {
                         onChange={(e) => updateCount(row.id, d.value, e.target.value)}
                         onFocus={(e) => e.target.select()}
                         placeholder="0"
-                        className="w-full bg-white/80 border border-gold-300/30 rounded-lg text-center py-1 text-sm font-mono text-[#3d2e1f] placeholder:text-[#ccc] focus:border-gold-500 focus:ring-2 focus:ring-gold-300/30 outline-none"
+                        className="w-full bg-white/80 border border-gold-300/30 rounded-lg text-center py-1.5 text-sm font-mono text-[#3d2e1f] placeholder:text-[#ccc] focus:border-gold-500 focus:ring-2 focus:ring-gold-300/30 outline-none"
                       />
-                      <span className="text-[10px] text-[#a08a6e] leading-tight">{d.label}</span>
                     </div>
                   ))}
                 </div>
