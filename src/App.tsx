@@ -1,8 +1,7 @@
-import { useState, useRef, useEffect, useCallback } from "react"
+import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { type RowData, createEmptyRow, calcGrandTotal, calcColumnTotal, DENOMINATIONS } from "@/config/denominations"
 import { HongbaoTable } from "@/components/HongbaoTable"
-import { GoldIngotTreasury } from "@/components/GoldIngotTreasury"
 
 function App() {
   const [rows, setRows] = useState<RowData[]>([
@@ -10,36 +9,13 @@ function App() {
     createEmptyRow(),
   ])
   const [confirmClearAll, setConfirmClearAll] = useState(false)
-  const [ingotBurst, setIngotBurst] = useState(0) // counter to trigger burst animation
-  const prevTotalRef = useRef(0)
 
   const grandTotal = calcGrandTotal(rows)
 
-  // Detect any bill added (total increased)
-  useEffect(() => {
-    if (grandTotal > prevTotalRef.current && prevTotalRef.current >= 0) {
-      // Trigger gold ingot burst
-      setIngotBurst((c) => c + 1)
-      if (navigator.vibrate) navigator.vibrate(30)
-    }
-    prevTotalRef.current = grandTotal
-  }, [grandTotal])
-
-  // Wrap setRows to detect additions
-  const handleSetRows: React.Dispatch<React.SetStateAction<RowData[]>> = useCallback((action) => {
-    setRows(action)
-  }, [])
-
-  // Clear all
   const handleClearAll = () => {
     setRows([createEmptyRow(), createEmptyRow()])
     setConfirmClearAll(false)
-    prevTotalRef.current = 0
   }
-
-  // Treasury fill level (0-1) based on total amount
-  // 0 at $0, full at $50,000+
-  const fillLevel = Math.min(grandTotal / 50000, 1)
 
   return (
     <div className="min-h-screen pb-12">
@@ -105,9 +81,9 @@ function App() {
           </div>
 
           {/* Table */}
-          <HongbaoTable rows={rows} setRows={handleSetRows} />
+          <HongbaoTable rows={rows} setRows={setRows} />
 
-          {/* Action buttons row */}
+          {/* Action buttons */}
           <div className="flex gap-3 mt-4">
             {rows.length > 0 && (
               <div className="relative">
@@ -140,37 +116,20 @@ function App() {
           </div>
         </motion.div>
 
-        {/* Gold Ingot Treasury + Grand Total */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="mt-6 relative"
-        >
+        {/* Bottom Total — Clean & Simple */}
+        <div className="mt-6">
           <div className="h-[2px] bg-gradient-to-r from-transparent via-gold-400 to-transparent" />
 
           <div className="bg-gradient-to-b from-red-800 via-red-700 to-red-800 rounded-2xl p-6 sm:p-8 text-center relative overflow-hidden shadow-2xl shadow-red-900/30 border border-gold-400/20">
             <div className="absolute inset-2 border border-gold-400/20 rounded-xl pointer-events-none" />
-            <div
-              className="absolute inset-0 opacity-[0.03]"
-              style={{
-                backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 0L40 20 20 40 0 20z' fill='%23FFD700' fill-opacity='1'/%3E%3C/svg%3E")`,
-                backgroundSize: "20px 20px",
-              }}
-            />
             <div className="relative z-10">
               <p className="text-gold-300/70 text-sm tracking-[0.3em] font-display mb-3">🧧 合計 🧧</p>
 
-              {/* Gold Ingot Treasury */}
-              <GoldIngotTreasury fillLevel={fillLevel} burstTrigger={ingotBurst} />
-
-              {/* Grand Total */}
               <motion.div
                 key={grandTotal}
-                initial={{ scale: 1.08 }}
+                initial={{ scale: 1.05 }}
                 animate={{ scale: 1 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                className="mt-4"
               >
                 <span
                   className="font-mono text-4xl sm:text-5xl font-black tracking-tight"
@@ -202,7 +161,7 @@ function App() {
                 })}
               </div>
 
-              {/* Blessing — always visible when grandTotal > 0 */}
+              {/* Blessing — only when > 0 */}
               <AnimatePresence>
                 {grandTotal > 0 && (
                   <motion.p
@@ -220,7 +179,7 @@ function App() {
           </div>
 
           <div className="h-[2px] bg-gradient-to-r from-transparent via-gold-400 to-transparent" />
-        </motion.div>
+        </div>
 
         {/* Footer */}
         <footer className="text-center mt-8 text-xs text-[#b8a080]">
