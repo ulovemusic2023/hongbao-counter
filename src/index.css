@@ -1,0 +1,129 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Noto Sans TC", "Noto Serif TC", sans-serif;
+  --font-display: "Noto Serif TC", serif;
+
+  --color-cream-50: #fefcf7;
+  --color-cream-100: #fdf6e8;
+  --color-cream-200: #f8ecd0;
+  --color-cream-300: #f0ddb0;
+
+  --color-red-50: #fef2f0;
+  --color-red-100: #fde3de;
+  --color-red-200: #fbc5bc;
+  --color-red-300: #f8a090;
+  --color-red-400: #f27058;
+  --color-red-500: #e8432a;
+  --color-red-600: #c9311a;
+  --color-red-700: #a82817;
+  --color-red-800: #8b2417;
+  --color-red-900: #6d2118;
+
+  --color-gold-50: #fefbe8;
+  --color-gold-100: #fdf5c4;
+  --color-gold-200: #fce88c;
+  --color-gold-300: #f9d44a;
+  --color-gold-400: #f5c118;
+  --color-gold-500: #daa520;
+  --color-gold-600: #b8860b;
+  --color-gold-700: #93680e;
+  --color-gold-800: #7a5213;
+  --color-gold-900: #684416;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background: linear-gradient(160deg, var(--color-cream-50) 0%, var(--color-cream-100) 40%, var(--color-cream-200) 100%);
+    min-height: 100vh;
+    color: #3d2e1f;
+    position: relative;
+  }
+
+  /* Subtle pattern overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23daa520' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  #root {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-cream-100);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-gold-400);
+  border-radius: 3px;
+}
+
+/* Input number spinner hide */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
+.animate-shimmer {
+  background-size: 200% auto;
+  animation: shimmer 3s linear infinite;
+}
+
+/* Delete button animation */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-2px); }
+  40% { transform: translateX(2px); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(2px); }
+}
+
+.animate-shake {
+  animation: shake 0.4s ease-in-out;
+}

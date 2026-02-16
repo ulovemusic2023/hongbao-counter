@@ -1,0 +1,1 @@
+{"root":["./src/App.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/components/BillImage.tsx","./src/components/ExportButtons.tsx","./src/components/HongbaoTable.tsx","./src/config/denominations.ts","./src/lib/export.ts","./src/lib/utils.ts"],"version":"5.9.3"}
