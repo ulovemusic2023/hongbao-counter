@@ -6,8 +6,6 @@ import {
   type RowData,
   createEmptyRow,
   calcRowTotal,
-  calcColumnTotal,
-  calcGrandTotal,
 } from "@/config/denominations"
 import { BillImage } from "./BillImage"
 
@@ -65,8 +63,6 @@ export function HongbaoTable({ rows, setRows }: HongbaoTableProps) {
     },
     [setRows]
   )
-
-  const grandTotal = calcGrandTotal(rows)
 
   return (
     <div className="w-full">
@@ -182,31 +178,6 @@ export function HongbaoTable({ rows, setRows }: HongbaoTableProps) {
               })}
             </AnimatePresence>
           </tbody>
-          <tfoot>
-            <tr className="border-t-2 border-gold-500/40 bg-gradient-to-r from-gold-50/50 to-red-50/30">
-              <td className="py-3 px-3 font-display font-bold text-sm text-[#5a3e2b]">
-                合計
-              </td>
-              {DENOMINATIONS.map((d) => (
-                <td key={d.value} className="py-3 px-2 text-center">
-                  <span className="font-mono text-sm font-bold text-[#5a3e2b]">
-                    {calcColumnTotal(rows, d.value)} 張
-                  </span>
-                </td>
-              ))}
-              <td className="py-3 px-3 text-center">
-                <motion.span
-                  key={grandTotal}
-                  initial={{ scale: 1.1 }}
-                  animate={{ scale: 1 }}
-                  className="font-mono text-base font-black text-red-700"
-                >
-                  ${grandTotal.toLocaleString()}
-                </motion.span>
-              </td>
-              <td />
-            </tr>
-          </tfoot>
         </table>
       </div>
 
@@ -306,29 +277,6 @@ export function HongbaoTable({ rows, setRows }: HongbaoTableProps) {
           })}
         </AnimatePresence>
 
-        {/* Mobile total bar */}
-        {rows.length > 0 && (
-          <div className="bg-gradient-to-r from-red-700 to-red-800 rounded-xl p-4 text-white shadow-lg">
-            <div className="flex justify-between items-center mb-2">
-              <span className="font-display font-bold">合計</span>
-              <motion.span
-                key={grandTotal}
-                initial={{ scale: 1.15 }}
-                animate={{ scale: 1 }}
-                className="font-mono text-xl font-black"
-              >
-                ${grandTotal.toLocaleString()}
-              </motion.span>
-            </div>
-            <div className="flex justify-between text-xs text-white/70">
-              {DENOMINATIONS.map((d) => (
-                <span key={d.value}>
-                  {d.value}元：{calcColumnTotal(rows, d.value)}張
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Add row button */}
