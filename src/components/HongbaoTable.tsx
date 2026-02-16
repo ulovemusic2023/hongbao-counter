@@ -144,8 +144,8 @@ export function HongbaoTable({ rows, setRows }: HongbaoTableProps) {
                     ))}
                     <td className="py-2 px-3 text-center">
                       <span
-                        className={`font-mono text-base font-black transition-colors ${
-                          rowTotal > 0 ? "text-red-700" : "text-[#bbb]"
+                        className={`font-mono text-lg font-black transition-colors ${
+                          rowTotal > 0 ? "text-red-700 drop-shadow-[0_0_6px_rgba(200,50,50,0.15)]" : "text-[#bbb]"
                         }`}
                       >
                         ${rowTotal.toLocaleString()}
@@ -294,7 +294,7 @@ export function HongbaoTable({ rows, setRows }: HongbaoTableProps) {
                 <div className="mt-3 pt-2 border-t border-gold-200/30 text-right">
                   <span className="text-xs text-[#8a7460]">小計：</span>
                   <span
-                    className={`font-mono text-base font-black ml-1 ${
+                    className={`font-mono text-lg font-black ml-1 ${
                       rowTotal > 0 ? "text-red-700" : "text-[#bbb]"
                     }`}
                   >
@@ -305,6 +305,30 @@ export function HongbaoTable({ rows, setRows }: HongbaoTableProps) {
             )
           })}
         </AnimatePresence>
+
+        {/* Mobile total bar */}
+        {rows.length > 0 && (
+          <div className="bg-gradient-to-r from-red-700 to-red-800 rounded-xl p-4 text-white shadow-lg">
+            <div className="flex justify-between items-center mb-2">
+              <span className="font-display font-bold">合計</span>
+              <motion.span
+                key={grandTotal}
+                initial={{ scale: 1.15 }}
+                animate={{ scale: 1 }}
+                className="font-mono text-xl font-black"
+              >
+                ${grandTotal.toLocaleString()}
+              </motion.span>
+            </div>
+            <div className="flex justify-between text-xs text-white/70">
+              {DENOMINATIONS.map((d) => (
+                <span key={d.value}>
+                  {d.value}元：{calcColumnTotal(rows, d.value)}張
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Add row button */}
