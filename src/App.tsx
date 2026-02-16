@@ -1,34 +1,45 @@
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { type RowData, createEmptyRow, calcGrandTotal, calcColumnTotal, DENOMINATIONS } from "@/config/denominations"
 import { HongbaoTable } from "@/components/HongbaoTable"
+import { GoldIngotTreasury } from "@/components/GoldIngotTreasury"
 
 function App() {
   const [rows, setRows] = useState<RowData[]>([
     createEmptyRow(),
     createEmptyRow(),
   ])
-  const [showBlessing, setShowBlessing] = useState(false)
   const [confirmClearAll, setConfirmClearAll] = useState(false)
+  const [ingotBurst, setIngotBurst] = useState(0) // counter to trigger burst animation
   const prevTotalRef = useRef(0)
 
   const grandTotal = calcGrandTotal(rows)
 
-  // Blessing animation trigger: when total goes from 0 to > 0
+  // Detect any bill added (total increased)
   useEffect(() => {
-    if (prevTotalRef.current === 0 && grandTotal > 0) {
-      setShowBlessing(true)
-      if (navigator.vibrate) navigator.vibrate(80)
-      setTimeout(() => setShowBlessing(false), 3500)
+    if (grandTotal > prevTotalRef.current && prevTotalRef.current >= 0) {
+      // Trigger gold ingot burst
+      setIngotBurst((c) => c + 1)
+      if (navigator.vibrate) navigator.vibrate(30)
     }
     prevTotalRef.current = grandTotal
   }, [grandTotal])
+
+  // Wrap setRows to detect additions
+  const handleSetRows: React.Dispatch<React.SetStateAction<RowData[]>> = useCallback((action) => {
+    setRows(action)
+  }, [])
 
   // Clear all
   const handleClearAll = () => {
     setRows([createEmptyRow(), createEmptyRow()])
     setConfirmClearAll(false)
+    prevTotalRef.current = 0
   }
+
+  // Treasury fill level (0-1) based on total amount
+  // 0 at $0, full at $50,000+
+  const fillLevel = Math.min(grandTotal / 50000, 1)
 
   return (
     <div className="min-h-screen pb-12">
@@ -94,7 +105,7 @@ function App() {
           </div>
 
           {/* Table */}
-          <HongbaoTable rows={rows} setRows={setRows} />
+          <HongbaoTable rows={rows} setRows={handleSetRows} />
 
           {/* Action buttons row */}
           <div className="flex gap-3 mt-4">
@@ -129,7 +140,7 @@ function App() {
           </div>
         </motion.div>
 
-        {/* Bottom Grand Total — Ceremonial */}
+        {/* Gold Ingot Treasury + Grand Total */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -150,11 +161,16 @@ function App() {
             <div className="relative z-10">
               <p className="text-gold-300/70 text-sm tracking-[0.3em] font-display mb-3">🧧 合計 🧧</p>
 
+              {/* Gold Ingot Treasury */}
+              <GoldIngotTreasury fillLevel={fillLevel} burstTrigger={ingotBurst} />
+
+              {/* Grand Total */}
               <motion.div
                 key={grandTotal}
                 initial={{ scale: 1.08 }}
                 animate={{ scale: 1 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                className="mt-4"
               >
                 <span
                   className="font-mono text-4xl sm:text-5xl font-black tracking-tight"
@@ -169,7 +185,7 @@ function App() {
                 </span>
               </motion.div>
 
-              {/* Denomination breakdown — badge style */}
+              {/* Denomination breakdown */}
               <div className="flex flex-wrap justify-center gap-3 sm:gap-5 mt-5">
                 {DENOMINATIONS.map((d) => {
                   const count = calcColumnTotal(rows, d.value)
@@ -186,14 +202,14 @@ function App() {
                 })}
               </div>
 
-              {/* Blessing — only when grandTotal > 0 */}
+              {/* Blessing — always visible when grandTotal > 0 */}
               <AnimatePresence>
-                {showBlessing && grandTotal > 0 && (
+                {grandTotal > 0 && (
                   <motion.p
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.8 }}
+                    transition={{ duration: 0.6 }}
                     className="mt-5 text-gold-300/90 text-sm tracking-[0.2em] font-display whitespace-nowrap"
                   >
                     🧧 紅包到位　福氣歸位 ✨
@@ -208,8 +224,7 @@ function App() {
 
         {/* Footer */}
         <footer className="text-center mt-8 text-xs text-[#b8a080]">
-          <p>🧧 恭喜發財・紅包拿來 🧧</p>
-          <p className="mt-1 opacity-60">
+          <p className="opacity-60">
             純前端應用 — 資料僅存於瀏覽器，不會上傳
           </p>
         </footer>
