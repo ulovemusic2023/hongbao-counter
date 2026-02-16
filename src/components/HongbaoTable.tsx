@@ -1,10 +1,11 @@
 import { useState, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Trash2, Plus, AlertTriangle } from "lucide-react"
+import { Trash2, AlertTriangle } from "lucide-react"
 import {
   DENOMINATIONS,
   type RowData,
   createEmptyRow,
+  calcRowTotal,
 } from "@/config/denominations"
 import { BillImage } from "./BillImage"
 
@@ -80,12 +81,16 @@ export function HongbaoTable({ rows, setRows }: HongbaoTableProps) {
                   </span>
                 </th>
               ))}
+              <th className="py-3 px-3 text-center font-display text-sm font-semibold text-[#5a3e2b] min-w-[90px]">
+                小計
+              </th>
               <th className="py-3 px-2 w-10" />
             </tr>
           </thead>
           <tbody>
             <AnimatePresence mode="popLayout">
               {rows.map((row, idx) => {
+                const rowTotal = calcRowTotal(row)
                 return (
                   <motion.tr
                     key={row.id}
@@ -107,7 +112,6 @@ export function HongbaoTable({ rows, setRows }: HongbaoTableProps) {
                     {DENOMINATIONS.map((d) => (
                       <td key={d.value} className="py-2 px-2 text-center">
                         <div className="flex items-center justify-center gap-1.5">
-                          {/* Bill click button */}
                           <button
                             type="button"
                             onClick={() => incrementCount(row.id, d.value)}
@@ -119,7 +123,6 @@ export function HongbaoTable({ rows, setRows }: HongbaoTableProps) {
                               +1
                             </div>
                           </button>
-                          {/* Number input */}
                           <input
                             type="number"
                             min={0}
@@ -133,6 +136,15 @@ export function HongbaoTable({ rows, setRows }: HongbaoTableProps) {
                         </div>
                       </td>
                     ))}
+                    <td className="py-2 px-3 text-center">
+                      <span
+                        className={`font-mono text-lg font-black transition-colors ${
+                          rowTotal > 0 ? "text-red-700" : "text-[#bbb]"
+                        }`}
+                      >
+                        ${rowTotal.toLocaleString()}
+                      </span>
+                    </td>
                     <td className="py-2 px-2 text-center">
                       {confirmDeleteId === row.id ? (
                         <div className="flex items-center gap-1">
@@ -171,6 +183,7 @@ export function HongbaoTable({ rows, setRows }: HongbaoTableProps) {
       <div className="sm:hidden space-y-3">
         <AnimatePresence mode="popLayout">
           {rows.map((row, idx) => {
+            const rowTotal = calcRowTotal(row)
             return (
               <motion.div
                 key={row.id}
@@ -178,59 +191,34 @@ export function HongbaoTable({ rows, setRows }: HongbaoTableProps) {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, x: -100 }}
                 transition={{ duration: 0.25, delay: idx * 0.03 }}
-                className="bg-white/70 backdrop-blur-sm rounded-xl border border-gold-300/20 p-4 shadow-sm"
+                className="bg-white/70 backdrop-blur-sm rounded-xl border border-gold-300/20 p-3 shadow-sm overflow-hidden"
               >
-                {/* Name + delete */}
-                <div className="flex items-center justify-between mb-3">
+                {/* Row 1: Name */}
+                <div className="mb-3">
                   <input
                     type="text"
                     value={row.name}
                     onChange={(e) => updateName(row.id, e.target.value)}
                     placeholder="輸入姓名..."
-                    className="flex-1 bg-transparent border-b border-gold-300/40 focus:border-gold-500 outline-none py-1 text-base text-[#3d2e1f] placeholder:text-[#b8a080] font-semibold"
+                    className="w-full bg-transparent border-b border-gold-300/40 focus:border-gold-500 outline-none py-1 text-base text-[#3d2e1f] placeholder:text-[#b8a080] font-semibold"
                   />
-                  {confirmDeleteId === row.id ? (
-                    <div className="flex items-center gap-1 ml-2">
-                      <button
-                        onClick={() => deleteRow(row.id)}
-                        className="text-xs bg-red-600 text-white px-2 py-1 rounded-lg"
-                      >
-                        刪除
-                      </button>
-                      <button
-                        onClick={() => setConfirmDeleteId(null)}
-                        className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-lg"
-                      >
-                        取消
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => setConfirmDeleteId(row.id)}
-                      className="ml-2 text-red-300 hover:text-red-500 p-1.5 rounded-lg hover:bg-red-50 transition-all"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  )}
                 </div>
 
-                {/* Bill buttons + inputs per denomination — inside each card */}
-                <div className="grid grid-cols-3 gap-3">
+                {/* Row 2: Bill buttons + inputs */}
+                <div className="grid grid-cols-3 gap-2">
                   {DENOMINATIONS.map((d) => (
-                    <div key={d.value} className="flex flex-col items-center gap-1.5">
-                      {/* Clickable bill */}
+                    <div key={d.value} className="flex flex-col items-center gap-1">
                       <button
                         type="button"
                         onClick={() => incrementCount(row.id, d.value)}
-                        className="relative cursor-pointer transition-transform active:scale-90 hover:scale-105"
-                        title={`點擊 +1 張 ${d.label}`}
+                        className="relative cursor-pointer transition-transform active:scale-90"
+                        title={`+1 張 ${d.label}`}
                       >
-                        <BillImage denomination={d} height={32} />
+                        <BillImage denomination={d} height={28} />
                         <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center shadow-sm">
                           +1
                         </div>
                       </button>
-                      {/* Input */}
                       <input
                         type="number"
                         min={0}
@@ -239,18 +227,59 @@ export function HongbaoTable({ rows, setRows }: HongbaoTableProps) {
                         onChange={(e) => updateCount(row.id, d.value, e.target.value)}
                         onFocus={(e) => e.target.select()}
                         placeholder="0"
-                        className="w-full bg-white/80 border border-gold-300/30 rounded-lg text-center py-1.5 text-sm font-mono text-[#3d2e1f] placeholder:text-[#ccc] focus:border-gold-500 focus:ring-2 focus:ring-gold-300/30 outline-none"
+                        className="w-full bg-white/80 border border-gold-300/30 rounded-lg text-center py-1 text-sm font-mono text-[#3d2e1f] placeholder:text-[#ccc] focus:border-gold-500 focus:ring-2 focus:ring-gold-300/30 outline-none"
                       />
-                      <span className="text-[10px] text-[#a08a6e]">{d.label}</span>
+                      <span className="text-[10px] text-[#a08a6e] leading-tight">{d.label}</span>
                     </div>
                   ))}
                 </div>
 
+                {/* Row 3: Subtotal + Delete — same line, inside card */}
+                <div className="mt-3 pt-2 border-t border-gold-200/30 flex items-center justify-between">
+                  {/* Delete */}
+                  <div className="shrink-0">
+                    {confirmDeleteId === row.id ? (
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => deleteRow(row.id)}
+                          className="text-[11px] bg-red-600 text-white px-2 py-1 rounded-md"
+                        >
+                          確定刪除
+                        </button>
+                        <button
+                          onClick={() => setConfirmDeleteId(null)}
+                          className="text-[11px] bg-gray-200 text-gray-600 px-2 py-1 rounded-md"
+                        >
+                          取消
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setConfirmDeleteId(row.id)}
+                        className="text-red-300 hover:text-red-500 p-1 rounded-lg transition-all flex items-center gap-1"
+                      >
+                        <Trash2 size={14} />
+                        <span className="text-[11px]">刪除</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Subtotal */}
+                  <div className="text-right">
+                    <span className="text-xs text-[#8a7460]">小計　</span>
+                    <span
+                      className={`font-mono text-lg font-black ${
+                        rowTotal > 0 ? "text-red-700" : "text-[#bbb]"
+                      }`}
+                    >
+                      ${rowTotal.toLocaleString()}
+                    </span>
+                  </div>
+                </div>
               </motion.div>
             )
           })}
         </AnimatePresence>
-
       </div>
 
       {/* Add row button */}
